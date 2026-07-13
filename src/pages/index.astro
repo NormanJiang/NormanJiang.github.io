@@ -1,0 +1,95 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const posts = (await getCollection("posts")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+const featured = posts.filter((post) => post.data.featured);
+const categories = [...new Set(posts.map((post) => post.data.category))].sort();
+const heroPost = featured[0] ?? posts[0];
+---
+
+<BaseLayout
+  title="Writing & Photos | 个人图文写作"
+  description="一个明亮、有序、带有杂志感的个人图文写作网站。"
+>
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Personal Magazine</p>
+      <h1>把日常的亮色，整理成可以回看的图文。</h1>
+      <p class="hero-text">
+        这里会存放个人创作、照片、札记与缓慢形成的文章。先保持清晰，之后让内容慢慢长出更多路径。
+      </p>
+      <div class="hero-actions">
+        <a class="button" href="#latest">阅读最新</a>
+        <a class="button button-ghost" href="/category/">浏览分类</a>
+      </div>
+    </div>
+    {
+      heroPost && (
+        <a class="hero-card glow-card" href={`/posts/${heroPost.id}/`}>
+          <img src={heroPost.data.cover} alt="" loading="eager" />
+          <div class="hero-card-content">
+            <span>{heroPost.data.category}</span>
+            <h2>{heroPost.data.title}</h2>
+            <p>{heroPost.data.description}</p>
+          </div>
+        </a>
+      )
+    }
+  </section>
+
+  <section class="section-band">
+    <div class="section-heading">
+      <p class="eyebrow">Featured</p>
+      <h2>精选文章</h2>
+    </div>
+    <div class="feature-grid">
+      {
+        featured.map((post) => (
+          <a class="post-card glow-card" href={`/posts/${post.id}/`}>
+            <img src={post.data.cover} alt="" loading="lazy" />
+            <div class="post-card-body">
+              <span>{post.data.category}</span>
+              <h3>{post.data.title}</h3>
+              <p>{post.data.description}</p>
+            </div>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="section-band" id="latest">
+    <div class="section-heading">
+      <p class="eyebrow">Latest</p>
+      <h2>最新记录</h2>
+    </div>
+    <div class="latest-list">
+      {
+        posts.map((post) => (
+          <a class="latest-row" href={`/posts/${post.id}/`}>
+            <time datetime={post.data.date.toISOString()}>
+              {post.data.date.toLocaleDateString("zh-CN", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit"
+              })}
+            </time>
+            <strong>{post.data.title}</strong>
+            <span>{post.data.category}</span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="category-strip">
+    {
+      categories.map((category) => (
+        <a href={`/category/${encodeURIComponent(category)}/`}>{category}</a>
+      ))
+    }
+  </section>
+</BaseLayout>
