@@ -1,0 +1,47 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts");
+  const categories = [...new Set(posts.map((post) => post.data.category))];
+
+  return categories.map((category) => ({
+    params: { category },
+    props: { category }
+  }));
+}
+
+const { category } = Astro.props;
+const posts = (await getCollection("posts"))
+  .filter((post) => post.data.category === category)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout title={`${category} | Norman's Blog`} description={`浏览“${category}”下的所有文章。`}>
+  <section class="page-intro timeline-intro">
+    <p class="eyebrow">Category</p>
+    <h1>{category}</h1>
+    <p>按时间从新到旧排列，共 {posts.length} 篇文章。</p>
+  </section>
+
+  <section class="section-band timeline-section">
+    <div class="latest-list">
+      {
+        posts.map((post) => (
+          <a class="latest-row" href={`/posts/${post.id}/`}>
+            <time datetime={post.data.date.toISOString()}>
+              {post.data.date.toLocaleDateString("zh-CN", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit"
+              })}
+            </time>
+            <strong>{post.data.title}</strong>
+            <span>{post.data.category}</span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

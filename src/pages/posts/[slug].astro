@@ -130,8 +130,8 @@ const articleHeadings = headings.filter((heading) => heading.depth >= 2 && headi
       };
 
       highlightSearchResults();
-      article.addEventListener("click", (event) => {
-        if (event.target.closest("mark.article-search-hit")) clearSearchHighlights();
+      document.addEventListener("click", () => {
+        if (article.querySelector("mark.article-search-hit")) clearSearchHighlights();
       });
 
       const headingPairs = links

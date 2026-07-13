@@ -120,14 +120,14 @@ const categoryCards = [...new Set(posts.map((post) => post.data.category))]
     <div class="category-showcase">
     {
       categoryCards.map((category) => (
-        <div class="category-showcase-card glow-card">
+        <a class="category-showcase-card glow-card" href={`/category/${encodeURIComponent(category.name)}/`}>
           {category.cover && <img src={category.cover} alt="" loading="lazy" decoding="async" />}
           <div>
             <span>{category.count} 篇文章</span>
             <h3>{category.name}</h3>
             {category.latestTitle && <p>最新：{category.latestTitle}</p>}
           </div>
-        </div>
+        </a>
       ))
     }
     </div>
