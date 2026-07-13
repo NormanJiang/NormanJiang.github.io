@@ -1,4 +1,5 @@
 ---
+import { getCollection } from "astro:content";
 import "../styles/global.css";
 
 interface Props {
@@ -7,9 +8,21 @@ interface Props {
 }
 
 const {
-  title = "Writing & Photos",
+  title = "Norman's Blog",
   description = "个人图文写作与影像记录"
 } = Astro.props;
+
+const posts = (await getCollection("posts")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+const searchPosts = posts.map((post) => ({
+  title: post.data.title,
+  description: post.data.description,
+  category: post.data.category,
+  body: post.body,
+  href: `/posts/${post.id}/`
+}));
+const searchJson = JSON.stringify(searchPosts).replaceAll("<", "\\u003c");
 ---
 
 <!doctype html>
@@ -27,7 +40,7 @@ const {
 
       window.addEventListener("DOMContentLoaded", () => {
         const items = document.querySelectorAll(
-          ".site-header, .hero-copy > *, .hero-card, .section-heading, .post-card, .latest-row, .category-strip a, .page-intro > *, .category-card, .article-header > *, .article-cover, .article-body > *, .article-nav, .reading-progress"
+          ".site-header, .hero-copy > *, .hero-card, .section-heading, .post-card, .latest-row, .category-showcase-card, .page-intro > *, .category-card, .article-header > *, .article-cover, .article-body > *, .reading-progress"
         );
 
         document.documentElement.classList.add("is-prepping-enter");
@@ -41,6 +54,116 @@ const {
           document.documentElement.classList.remove("is-prepping-enter");
           document.documentElement.classList.add("is-ready-enter");
         });
+
+        const searchRoot = document.querySelector("[data-site-search]");
+        const searchInput = searchRoot?.querySelector("input");
+        const searchResults = searchRoot?.querySelector("[data-search-results]");
+        const searchDataElement = document.getElementById("search-data");
+        const searchData = searchDataElement ? JSON.parse(searchDataElement.textContent || "[]") : [];
+
+        const escapeHtml = (value) =>
+          value.replace(/[&<>"']/g, (char) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+          })[char]);
+
+        const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+        const highlight = (value, query) => {
+          const safeValue = escapeHtml(value);
+          if (!query) return safeValue;
+          const pattern = new RegExp(`(${escapeRegExp(query)})`, "gi");
+          return safeValue.replace(pattern, "<mark>$1</mark>");
+        };
+
+        const renderSearch = () => {
+          if (!searchInput || !searchResults) return;
+
+          const query = searchInput.value.trim();
+          if (!query) {
+            searchResults.hidden = true;
+            searchResults.innerHTML = "";
+            return;
+          }
+
+          const normalizedQuery = query.toLowerCase();
+          const matches = searchData.filter((post) =>
+            [post.title, post.description, post.category, post.body].some((value) =>
+              value.toLowerCase().includes(normalizedQuery)
+            )
+          );
+
+          const getExcerpt = (post) => {
+            if (post.description.toLowerCase().includes(normalizedQuery)) {
+              return post.description;
+            }
+
+            const body = post.body.replace(/\s+/g, " ").trim();
+            const index = body.toLowerCase().indexOf(normalizedQuery);
+            if (index === -1) return post.description;
+
+            const start = Math.max(index - 26, 0);
+            const end = Math.min(index + query.length + 42, body.length);
+            return `${start > 0 ? "..." : ""}${body.slice(start, end)}${end < body.length ? "..." : ""}`;
+          };
+
+          searchResults.hidden = false;
+          if (!matches.length) {
+            searchResults.innerHTML = '<div class="search-empty">空</div>';
+            return;
+          }
+
+          searchResults.innerHTML = matches
+            .slice(0, 8)
+            .map((post) => `
+              <a class="search-result" href="${post.href}?q=${encodeURIComponent(query)}#search-result">
+                <span>${highlight(post.category, query)}</span>
+                <strong>${highlight(post.title, query)}</strong>
+                <small>${highlight(getExcerpt(post), query)}</small>
+              </a>
+            `)
+            .join("");
+        };
+
+        searchInput?.addEventListener("input", renderSearch);
+        searchInput?.addEventListener("focus", renderSearch);
+        document.addEventListener("click", (event) => {
+          if (!searchRoot?.contains(event.target)) {
+            searchResults.hidden = true;
+          }
+        });
+
+        const musicButton = document.querySelector("[data-music-toggle]");
+        const musicAudio = document.querySelector("[data-site-audio]");
+
+        const setMusicState = (isPlaying) => {
+          if (!musicButton) return;
+          musicButton.classList.toggle("is-playing", isPlaying);
+          musicButton.setAttribute("aria-pressed", String(isPlaying));
+          musicButton.setAttribute("aria-label", isPlaying ? "暂停音乐" : "播放音乐");
+          musicButton.setAttribute("title", isPlaying ? "暂停音乐" : "播放音乐");
+        };
+
+        musicButton?.addEventListener("click", async () => {
+          if (!musicAudio) return;
+
+          if (musicAudio.paused) {
+            try {
+              await musicAudio.play();
+              setMusicState(true);
+            } catch {
+              setMusicState(false);
+            }
+          } else {
+            musicAudio.pause();
+            setMusicState(false);
+          }
+        });
+
+        musicAudio?.addEventListener("ended", () => setMusicState(false));
       });
 
       window.addEventListener("beforeunload", () => {
@@ -57,24 +180,54 @@ const {
       });
     </script>
   </head>
-  <body>
+  <body id="page-top">
     <div class="site-shell">
       <header class="site-header">
         <a class="brand" href="/">
           <img class="brand-mark" src="/favicon.svg" alt="" width="24" height="24" />
-          <span>Writing & Photos</span>
+          <span>Norman's Blog</span>
         </a>
-        <nav aria-label="Primary navigation">
-          <a href="/">首页</a>
-          <a href="/category/">分类</a>
-        </nav>
+        <div class="header-tools">
+          <div class="site-search" data-site-search>
+            <label class="sr-only" for="site-search-input">搜索标题或正文</label>
+            <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m16.5 16.5 4 4"></path>
+            </svg>
+            <input id="site-search-input" type="search" placeholder="搜索标题或正文" autocomplete="off" />
+            <div class="search-panel" data-search-results hidden></div>
+          </div>
+          <button class="music-toggle" type="button" data-music-toggle aria-label="播放音乐" aria-pressed="false" title="播放音乐">
+            <svg class="music-icon music-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M11 5 6 9H3v6h3l5 4Z"></path>
+              <path d="m16 9 5 5"></path>
+              <path d="m21 9-5 5"></path>
+            </svg>
+            <svg class="music-icon music-icon-playing" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M11 5 6 9H3v6h3l5 4Z"></path>
+              <path class="music-wave music-wave-one" d="M15.5 9.5a4 4 0 0 1 0 5"></path>
+              <path class="music-wave music-wave-two" d="M19 6.5a8 8 0 0 1 0 11"></path>
+            </svg>
+          </button>
+        </div>
       </header>
       <main>
         <slot />
       </main>
       <footer class="site-footer">
-        <p>以图像保存光线，以文字整理时间。</p>
+        <a class="footer-top-link" href="#page-top" aria-label="回到顶部" title="回到顶部">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 3h14"></path>
+            <path d="m18 13-6-6-6 6"></path>
+            <path d="M12 7v14"></path>
+          </svg>
+        </a>
+        <p>Build with Codex GPT 5.6 Terra</p>
       </footer>
     </div>
+    <audio data-site-audio preload="metadata">
+      <source src="/audio/little-friend.mp3" type="audio/mpeg" />
+    </audio>
+    <script id="search-data" type="application/json" set:html={searchJson}></script>
   </body>
 </html>

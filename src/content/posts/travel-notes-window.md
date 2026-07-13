@@ -4,7 +4,7 @@ description: "旅行并不总是远方，更多时候是重新排列已经经过
 date: 2026-07-12
 category: "旅途札记"
 cover: "/images/travel-notes-window.png"
-featured: true
+featured: false  
 ---
 
 车窗外的风景一直在退后，桌面上的纸片却显得格外安静。照片、票根、手写的半句话，全都像是从不同日期里借来的证据。

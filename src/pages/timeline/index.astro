@@ -1,0 +1,48 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pageSize = 20;
+const posts = (await getCollection("posts")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
+const pagePosts = posts.slice(0, pageSize);
+---
+
+<BaseLayout title="时间线 | Norman's Blog" description="按时间顺序浏览所有文章。">
+  <section class="page-intro timeline-intro">
+    <p class="eyebrow">Timeline</p>
+    <h1>时间线</h1>
+    <p>从最新的一篇开始，按时间回看所有记录。</p>
+  </section>
+
+  <section class="section-band timeline-section">
+    <nav class="timeline-pagination" aria-label="时间线页码">
+      {
+        Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+          <a class:list={{ "is-current": page === 1 }} href={page === 1 ? "/timeline/" : `/timeline/${page}/`}>
+            {page}
+          </a>
+        ))
+      }
+    </nav>
+    <div class="latest-list">
+      {
+        pagePosts.map((post) => (
+          <a class="latest-row" href={`/posts/${post.id}/`}>
+            <time datetime={post.data.date.toISOString()}>
+              {post.data.date.toLocaleDateString("zh-CN", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit"
+              })}
+            </time>
+            <strong>{post.data.title}</strong>
+            <span>{post.data.category}</span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

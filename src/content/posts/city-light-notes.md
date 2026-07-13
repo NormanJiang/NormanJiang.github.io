@@ -4,7 +4,7 @@ description: "在玻璃、街角和下午的影子之间，记录那些比事件
 date: 2026-07-14
 category: "城市观察"
 cover: "/images/city-light-notes.png"
-featured: true
+featured: false
 ---
 
 下午的光落在窗边时，城市忽然变得很适合被重新观看。玻璃把街道切成几层，行人从色块之间穿过，声音被距离磨得很薄。

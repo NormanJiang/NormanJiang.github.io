@@ -13,15 +13,9 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
 const articleHeadings = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 4);
-const posts = (await getCollection("posts")).sort(
-  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
-);
-const currentIndex = posts.findIndex((item) => item.id === post.id);
-const previous = posts[currentIndex + 1];
-const next = posts[currentIndex - 1];
 ---
 
-<BaseLayout title={`${post.data.title} | Writing & Photos`} description={post.data.description}>
+<BaseLayout title={`${post.data.title} | Norman's Blog`} description={post.data.description}>
   <aside class="reading-progress" aria-label="阅读进度" data-reading-progress>
     <div class="reading-progress-track">
       <span class="reading-progress-fill" data-reading-progress-fill></span>
@@ -66,10 +60,6 @@ const next = posts[currentIndex - 1];
     <div class="article-body" data-article-body>
       <Content />
     </div>
-    <nav class="article-nav" aria-label="Article navigation">
-      {previous && <a href={`/posts/${previous.id}/`}>上一篇：{previous.data.title}</a>}
-      {next && <a href={`/posts/${next.id}/`}>下一篇：{next.data.title}</a>}
-    </nav>
   </article>
   <script is:inline>
     (() => {
@@ -80,6 +70,66 @@ const next = posts[currentIndex - 1];
       const links = [...document.querySelectorAll("[data-heading-id]")];
 
       if (!article || !fill || !percent) return;
+
+      const searchQuery = new URLSearchParams(window.location.search).get("q")?.trim();
+
+      const clearSearchHighlights = () => {
+        article.querySelectorAll("mark.article-search-hit").forEach((mark) => {
+          mark.replaceWith(document.createTextNode(mark.textContent || ""));
+        });
+        article.normalize();
+        history.replaceState({}, "", window.location.pathname);
+      };
+
+      const highlightSearchResults = () => {
+        if (!searchQuery) return;
+
+        const expression = new RegExp(searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+        const walker = document.createTreeWalker(article, NodeFilter.SHOW_TEXT, {
+          acceptNode(node) {
+            const parent = node.parentElement;
+            if (!node.nodeValue?.trim() || !parent || parent.closest("script, style, mark")) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            expression.lastIndex = 0;
+            return expression.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+          }
+        });
+        const matches = [];
+        let node;
+        while ((node = walker.nextNode())) matches.push(node);
+
+        let firstHit;
+        matches.forEach((textNode) => {
+          const fragment = document.createDocumentFragment();
+          const value = textNode.nodeValue;
+          let cursor = 0;
+          expression.lastIndex = 0;
+          let match;
+
+          while ((match = expression.exec(value))) {
+            if (match.index > cursor) fragment.append(value.slice(cursor, match.index));
+            const mark = document.createElement("mark");
+            mark.className = "article-search-hit";
+            mark.textContent = match[0];
+            fragment.append(mark);
+            firstHit ||= mark;
+            cursor = match.index + match[0].length;
+          }
+          if (cursor < value.length) fragment.append(value.slice(cursor));
+          textNode.replaceWith(fragment);
+        });
+
+        if (firstHit) {
+          firstHit.id = "search-result";
+          requestAnimationFrame(() => firstHit.scrollIntoView({ behavior: "smooth", block: "center" }));
+        }
+      };
+
+      highlightSearchResults();
+      article.addEventListener("click", (event) => {
+        if (event.target.closest("mark.article-search-hit")) clearSearchHighlights();
+      });
 
       const headingPairs = links
         .map((link) => ({

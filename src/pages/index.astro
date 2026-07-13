@@ -8,23 +8,33 @@ const posts = (await getCollection("posts")).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
 );
 const featured = posts.filter((post) => post.data.featured);
-const categories = [...new Set(posts.map((post) => post.data.category))].sort();
+const categoryCards = [...new Set(posts.map((post) => post.data.category))]
+  .sort()
+  .map((category) => {
+    const categoryPosts = posts.filter((post) => post.data.category === category);
+    return {
+      name: category,
+      count: categoryPosts.length,
+      cover: categoryPosts[0]?.data.cover,
+      latestTitle: categoryPosts[0]?.data.title
+    };
+  });
 ---
 
 <BaseLayout
-  title="Writing & Photos | 个人图文写作"
+  title="Norman's Blog | 个人图文写作"
   description="一个明亮、有序、带有杂志感的个人图文写作网站。"
 >
   <section class="hero">
     <div class="hero-copy">
-      <p class="eyebrow">Personal Magazine</p>
       <h1>把日常的亮色，整理成可以回看的图文。</h1>
       <p class="hero-text">
         这里会存放个人创作、照片、札记与缓慢形成的文章。先保持清晰，之后让内容慢慢长出更多路径。
       </p>
       <div class="hero-actions">
-        <a class="button" href="#latest">阅读最新</a>
-        <a class="button button-ghost" href="/category/">浏览分类</a>
+        <a class="button button-ghost" href="#latest">阅读最新</a>
+        <a class="button button-ghost" href="#article-types">浏览分类</a>
+        <a class="button button-ghost" href="/timeline/">时间线</a>
       </div>
     </div>
     <div class="hero-card hero-static-image glow-card">
@@ -38,15 +48,21 @@ const categories = [...new Set(posts.map((post) => post.data.category))].sort();
         decoding="async"
         fetchpriority="high"
       />
-      <div class="hero-stats" aria-label="网站统计">
-        <div>
-          <span>{posts.length}</span>
-          <p>文章总数</p>
-        </div>
-        <div>
-          <span>{categories.length}</span>
-          <p>分类总数</p>
-        </div>
+      <div class="hero-welcome" aria-label="Welcome smile handwritten animation">
+        <svg viewBox="0 0 560 160" role="img" aria-hidden="true">
+          <text class="welcome-text" x="36" y="98">
+            <tspan style="--char-delay: 0ms">W</tspan>
+            <tspan style="--char-delay: 90ms">e</tspan>
+            <tspan style="--char-delay: 180ms">l</tspan>
+            <tspan style="--char-delay: 270ms">c</tspan>
+            <tspan style="--char-delay: 360ms">o</tspan>
+            <tspan style="--char-delay: 450ms">m</tspan>
+            <tspan style="--char-delay: 540ms">e</tspan>
+            <tspan style="--char-delay: 630ms"> </tspan>
+            <tspan style="--char-delay: 720ms">:</tspan>
+            <tspan style="--char-delay: 810ms">)</tspan>
+          </text>
+        </svg>
       </div>
     </div>
   </section>
@@ -96,11 +112,24 @@ const categories = [...new Set(posts.map((post) => post.data.category))].sort();
     </div>
   </section>
 
-  <section class="category-strip">
+  <section class="section-band" id="article-types">
+    <div class="section-heading">
+      <p class="eyebrow">Categories</p>
+      <h2>文章类型</h2>
+    </div>
+    <div class="category-showcase">
     {
-      categories.map((category) => (
-        <a href={`/category/${encodeURIComponent(category)}/`}>{category}</a>
+      categoryCards.map((category) => (
+        <div class="category-showcase-card glow-card">
+          {category.cover && <img src={category.cover} alt="" loading="lazy" decoding="async" />}
+          <div>
+            <span>{category.count} 篇文章</span>
+            <h3>{category.name}</h3>
+            {category.latestTitle && <p>最新：{category.latestTitle}</p>}
+          </div>
+        </div>
       ))
     }
+    </div>
   </section>
 </BaseLayout>
