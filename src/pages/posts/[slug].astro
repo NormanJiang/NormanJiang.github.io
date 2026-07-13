@@ -21,7 +21,7 @@ const articleHeadings = headings.filter((heading) => heading.depth >= 2 && headi
       <span class="reading-progress-fill" data-reading-progress-fill></span>
     </div>
     <div class="reading-progress-panel">
-      <span class="reading-progress-kicker">Reading</span>
+      <span class="reading-progress-kicker">阅读进度</span>
       <strong data-reading-progress-percent>0%</strong>
       {
         articleHeadings.length > 0 && (
@@ -43,7 +43,10 @@ const articleHeadings = headings.filter((heading) => heading.depth >= 2 && headi
     </div>
   </aside>
   <article class="article">
-    <a class="back-link" href="/">返回首页</a>
+    <a class="back-link" href="/">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      <span>返回首页</span>
+    </a>
     <header class="article-header">
       <p class="eyebrow">{post.data.category}</p>
       <h1>{post.data.title}</h1>

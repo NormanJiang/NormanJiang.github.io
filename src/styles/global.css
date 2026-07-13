@@ -861,20 +861,39 @@ p {
 
 .back-link {
   display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 32px;
   color: var(--muted);
-  font-weight: 800;
+  font-weight: 900;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.back-link svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
 }
 
 .back-link:hover {
   color: var(--coral);
+  transform: translateX(-4px);
 }
 
 .article-header h1 {
   margin: 0;
   font-family: Georgia, "Noto Serif SC", serif;
-  font-size: clamp(3rem, 7vw, 6.5rem);
+  font-size: clamp(2.6rem, 5.6vw, 5rem);
   line-height: 0.96;
+}
+
+.article-header .eyebrow {
+  margin-bottom: 12px;
+  font-size: 1rem;
 }
 
 .article-header p:not(.eyebrow) {
