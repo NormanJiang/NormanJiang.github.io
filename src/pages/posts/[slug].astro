@@ -1,0 +1,126 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts");
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post }
+  }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const articleHeadings = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 4);
+const posts = (await getCollection("posts")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+const currentIndex = posts.findIndex((item) => item.id === post.id);
+const previous = posts[currentIndex + 1];
+const next = posts[currentIndex - 1];
+---
+
+<BaseLayout title={`${post.data.title} | Writing & Photos`} description={post.data.description}>
+  <aside class="reading-progress" aria-label="阅读进度" data-reading-progress>
+    <div class="reading-progress-track">
+      <span class="reading-progress-fill" data-reading-progress-fill></span>
+    </div>
+    <div class="reading-progress-panel">
+      <span class="reading-progress-kicker">Reading</span>
+      <strong data-reading-progress-percent>0%</strong>
+      {
+        articleHeadings.length > 0 && (
+          <div class="reading-progress-section">
+            <span>当前段落</span>
+            <p data-reading-current-heading>{articleHeadings[0].text}</p>
+            <ol>
+              {articleHeadings.map((heading) => (
+                <li class={`depth-${heading.depth}`}>
+                  <a href={`#${heading.slug}`} data-heading-id={heading.slug}>
+                    {heading.text}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )
+      }
+    </div>
+  </aside>
+  <article class="article">
+    <a class="back-link" href="/">返回首页</a>
+    <header class="article-header">
+      <p class="eyebrow">{post.data.category}</p>
+      <h1>{post.data.title}</h1>
+      <p>{post.data.description}</p>
+      <time datetime={post.data.date.toISOString()}>
+        {post.data.date.toLocaleDateString("zh-CN", {
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        })}
+      </time>
+    </header>
+    <img class="article-cover" src={post.data.cover} alt="" />
+    <div class="article-body" data-article-body>
+      <Content />
+    </div>
+    <nav class="article-nav" aria-label="Article navigation">
+      {previous && <a href={`/posts/${previous.id}/`}>上一篇：{previous.data.title}</a>}
+      {next && <a href={`/posts/${next.id}/`}>下一篇：{next.data.title}</a>}
+    </nav>
+  </article>
+  <script is:inline>
+    (() => {
+      const article = document.querySelector("[data-article-body]");
+      const fill = document.querySelector("[data-reading-progress-fill]");
+      const percent = document.querySelector("[data-reading-progress-percent]");
+      const currentHeading = document.querySelector("[data-reading-current-heading]");
+      const links = [...document.querySelectorAll("[data-heading-id]")];
+
+      if (!article || !fill || !percent) return;
+
+      const headingPairs = links
+        .map((link) => ({
+          link,
+          element: document.getElementById(link.dataset.headingId)
+        }))
+        .filter((pair) => pair.element);
+
+      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+      const update = () => {
+        const rect = article.getBoundingClientRect();
+        const start = window.scrollY + rect.top;
+        const end = start + article.scrollHeight - window.innerHeight;
+        const rawProgress = end <= start ? 1 : (window.scrollY - start) / (end - start);
+        const progress = clamp(rawProgress, 0, 1);
+        const rounded = Math.round(progress * 100);
+
+        fill.style.transform = window.matchMedia("(max-width: 820px)").matches
+          ? `scaleX(${progress})`
+          : `scaleY(${progress})`;
+        percent.textContent = `${rounded}%`;
+
+        if (headingPairs.length === 0 || !currentHeading) return;
+
+        let active = headingPairs[0];
+        for (const pair of headingPairs) {
+          if (pair.element.getBoundingClientRect().top <= 140) {
+            active = pair;
+          }
+        }
+
+        currentHeading.textContent = active.link.textContent.trim();
+        for (const pair of headingPairs) {
+          pair.link.classList.toggle("is-active", pair === active);
+        }
+      };
+
+      update();
+      window.addEventListener("scroll", update, { passive: true });
+      window.addEventListener("resize", update);
+    })();
+  </script>
+</BaseLayout>

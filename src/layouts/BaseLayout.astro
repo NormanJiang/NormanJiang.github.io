@@ -1,0 +1,61 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "Writing & Photos",
+  description = "个人图文写作与影像记录"
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <script is:inline>
+      if ("scrollRestoration" in history) {
+        history.scrollRestoration = "manual";
+      }
+
+      window.addEventListener("beforeunload", () => {
+        window.scrollTo(0, 0);
+      });
+
+      window.addEventListener("pageshow", (event) => {
+        const navigation = performance.getEntriesByType("navigation")[0];
+        const isReload = navigation?.type === "reload";
+
+        if (event.persisted || isReload) {
+          window.scrollTo(0, 0);
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="/">
+          <span class="brand-mark"></span>
+          <span>Writing & Photos</span>
+        </a>
+        <nav aria-label="Primary navigation">
+          <a href="/">首页</a>
+          <a href="/category/">分类</a>
+        </nav>
+      </header>
+      <main>
+        <slot />
+      </main>
+      <footer class="site-footer">
+        <p>以图像保存光线，以文字整理时间。</p>
+      </footer>
+    </div>
+  </body>
+</html>

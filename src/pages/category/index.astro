@@ -1,0 +1,34 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const posts = await getCollection("posts");
+const categories = [...new Set(posts.map((post) => post.data.category))]
+  .sort()
+  .map((category) => ({
+    name: category,
+    count: posts.filter((post) => post.data.category === category).length,
+    cover: posts.find((post) => post.data.category === category)?.data.cover
+  }));
+---
+
+<BaseLayout title="分类 | Writing & Photos" description="按主题浏览个人图文创作。">
+  <section class="page-intro">
+    <p class="eyebrow">Archive</p>
+    <h1>按主题收束散落的图文。</h1>
+    <p>分类由文章自动生成。新增 Markdown 后，这里会跟随内容自然扩展。</p>
+  </section>
+  <section class="category-grid">
+    {
+      categories.map((category) => (
+        <a class="category-card glow-card" href={`/category/${encodeURIComponent(category.name)}/`}>
+          {category.cover && <img src={category.cover} alt="" loading="lazy" />}
+          <div>
+            <span>{category.count} 篇</span>
+            <h2>{category.name}</h2>
+          </div>
+        </a>
+      ))
+    }
+  </section>
+</BaseLayout>
