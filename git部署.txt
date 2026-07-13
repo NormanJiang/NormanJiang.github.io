@@ -1,0 +1,8 @@
+git add .
+git commit -m "Add new post"
+git push
+
+等 GitHub 自动部署：
+打开：
+https://github.com/NormanJiang/NormanJiang.github.io/actions
+等最新的 Deploy to GitHub Pages 变绿。
