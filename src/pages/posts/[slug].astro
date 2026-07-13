@@ -62,7 +62,7 @@ const next = posts[currentIndex - 1];
         })}
       </time>
     </header>
-    <img class="article-cover" src={post.data.cover} alt="" />
+    <img class="article-cover" src={post.data.cover} alt="" loading="eager" decoding="async" fetchpriority="high" />
     <div class="article-body" data-article-body>
       <Content />
     </div>

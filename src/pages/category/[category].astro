@@ -30,7 +30,7 @@ const { category, posts } = Astro.props;
     {
       posts.map((post) => (
         <a class="post-card glow-card" href={`/posts/${post.id}/`}>
-          <img src={post.data.cover} alt="" loading="lazy" />
+          <img src={post.data.cover} alt="" loading="lazy" decoding="async" />
           <div class="post-card-body">
             <span>
               {post.data.date.toLocaleDateString("zh-CN", {

@@ -22,7 +22,7 @@ const categories = [...new Set(posts.map((post) => post.data.category))]
     {
       categories.map((category) => (
         <a class="category-card glow-card" href={`/category/${encodeURIComponent(category.name)}/`}>
-          {category.cover && <img src={category.cover} alt="" loading="lazy" />}
+          {category.cover && <img src={category.cover} alt="" loading="lazy" decoding="async" />}
           <div>
             <span>{category.count} 篇</span>
             <h2>{category.name}</h2>

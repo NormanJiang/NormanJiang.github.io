@@ -18,11 +18,30 @@ const {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
     <script is:inline>
       if ("scrollRestoration" in history) {
         history.scrollRestoration = "manual";
       }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const items = document.querySelectorAll(
+          ".site-header, .hero-copy > *, .hero-card, .section-heading, .post-card, .latest-row, .category-strip a, .page-intro > *, .category-card, .article-header > *, .article-cover, .article-body > *, .article-nav, .reading-progress"
+        );
+
+        document.documentElement.classList.add("is-prepping-enter");
+
+        items.forEach((item, index) => {
+          item.setAttribute("data-enter", "");
+          item.style.setProperty("--enter-delay", `${Math.min(index * 34, 420)}ms`);
+        });
+
+        requestAnimationFrame(() => {
+          document.documentElement.classList.remove("is-prepping-enter");
+          document.documentElement.classList.add("is-ready-enter");
+        });
+      });
 
       window.addEventListener("beforeunload", () => {
         window.scrollTo(0, 0);
@@ -42,7 +61,7 @@ const {
     <div class="site-shell">
       <header class="site-header">
         <a class="brand" href="/">
-          <span class="brand-mark"></span>
+          <img class="brand-mark" src="/favicon.svg" alt="" width="24" height="24" />
           <span>Writing & Photos</span>
         </a>
         <nav aria-label="Primary navigation">
