@@ -779,51 +779,6 @@ p {
   transform: scale(1.035);
 }
 
-.hero-welcome {
-  position: absolute;
-  top: 92px;
-  left: 56%;
-  z-index: 2;
-  width: min(76%, 560px);
-  color: #ffffff;
-  transform: translateX(-50%);
-}
-
-.hero-welcome svg {
-  width: 100%;
-  overflow: visible;
-  filter: drop-shadow(0 8px 16px rgba(22, 18, 15, 0.2));
-}
-
-.welcome-text {
-  fill: currentColor;
-  paint-order: stroke fill;
-  stroke: rgba(255, 255, 255, 0.34);
-  stroke-width: 0.7px;
-  font-family: "Segoe Script", "Brush Script MT", Georgia, "Noto Serif SC", serif;
-  font-size: 72px;
-  font-style: italic;
-  font-weight: 600;
-}
-
-.welcome-text tspan {
-  opacity: 0;
-  filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.26)) drop-shadow(0 5px 7px rgba(22, 18, 15, 0.26));
-  animation: char-pop 520ms cubic-bezier(0.22, 1, 0.36, 1) calc(420ms + var(--char-delay)) forwards;
-}
-
-@keyframes char-pop {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .hero-static-image::before {
   position: absolute;
   inset: 0;
@@ -1437,16 +1392,6 @@ p {
 
   .hero-card {
     min-height: 440px;
-  }
-
-  .hero-welcome {
-    top: 36px;
-    left: 54%;
-    width: calc(100% - 28px);
-  }
-
-  .welcome-text {
-    font-size: 58px;
   }
 
   .feature-grid,
