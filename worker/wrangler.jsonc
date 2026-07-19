@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "norman-blog-admin-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-16",
+  "workers_dev": true,
+  "vars": {
+    "GITHUB_OWNER": "NormanJiang",
+    "GITHUB_REPO": "NormanJiang.github.io",
+    "GITHUB_BRANCH": "main",
+    "ALLOWED_ORIGINS": "https://normanjiang.github.io,http://localhost:4321,http://127.0.0.1:4321"
+  },
+  "secrets": {
+    "required": [
+      "ADMIN_PASSWORD",
+      "GITHUB_TOKEN",
+      "SESSION_SECRET"
+    ]
+  }
+}

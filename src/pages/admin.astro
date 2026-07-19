@@ -1,0 +1,87 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const categories = [...new Set((await getCollection("posts")).map((post) => post.data.category))].sort();
+---
+
+<BaseLayout
+  title="管理员模式 | Norman's Blog"
+  description="发布新的 Markdown 图文文章。"
+  robots="noindex, nofollow"
+>
+  <section class="admin-page">
+    <header class="admin-page-header">
+      <div>
+        <p class="eyebrow">Admin Mode</p>
+        <h1>发布新文章</h1>
+        <p>填写文章信息并上传 Markdown 与封面，提交后会自动写入 GitHub 仓库并触发网站构建。</p>
+      </div>
+      <button class="button button-ghost admin-logout" type="button" data-admin-logout>退出管理员模式</button>
+    </header>
+
+    <div class="admin-locked" data-admin-locked hidden>
+      <strong>需要管理员身份</strong>
+      <p>请先通过顶部管理员入口验证密码。</p>
+      <button class="button" type="button" data-admin-login-open>打开登录框</button>
+    </div>
+
+    <form class="admin-publish-form" data-admin-publish-form hidden>
+      <div class="admin-form-grid">
+        <label>
+          <span>文章类型</span>
+          <input name="category" type="text" list="category-options" placeholder="例如：小说" required />
+          <datalist id="category-options">
+            {categories.map((category) => <option value={category}></option>)}
+          </datalist>
+        </label>
+
+        <label>
+          <span>发布日期</span>
+          <input name="date" type="date" required data-admin-date />
+        </label>
+
+        <label class="admin-field-wide">
+          <span>文章标题</span>
+          <input name="title" type="text" placeholder="输入文章标题" maxlength="120" required />
+        </label>
+
+        <label class="admin-field-wide">
+          <span>子标题 / 摘要</span>
+          <input name="description" type="text" placeholder="一句话介绍这篇文章" maxlength="240" required />
+        </label>
+
+        <label class="admin-upload-field">
+          <span>Markdown 文件</span>
+          <input name="markdown" type="file" accept=".md,text/markdown,text/plain" required />
+          <small>正文文件，文件内已有的 frontmatter 会被表单信息替换。</small>
+        </label>
+
+        <label class="admin-upload-field">
+          <span>封面图片</span>
+          <input name="cover" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" required data-admin-cover />
+          <small>支持 PNG、JPG、WebP、GIF 或 AVIF，最大 10MB。</small>
+        </label>
+      </div>
+
+      <div class="admin-cover-preview" data-admin-cover-preview hidden>
+        <img alt="封面预览" data-admin-cover-image />
+      </div>
+
+      <label class="admin-featured-toggle">
+        <input name="featured" type="checkbox" value="true" />
+        <span>设为精选文章</span>
+      </label>
+
+      <div class="admin-publish-actions">
+        <button class="button" type="submit" data-admin-publish-button>上传并发布</button>
+        <p class="admin-publish-status" data-admin-publish-status aria-live="polite"></p>
+      </div>
+
+      <a class="admin-commit-link" data-admin-commit-link href="#" target="_blank" rel="noreferrer" hidden>
+        查看本次 GitHub 提交
+      </a>
+    </form>
+  </section>
+  <script src="/scripts/admin-publish.js" defer></script>
+</BaseLayout>

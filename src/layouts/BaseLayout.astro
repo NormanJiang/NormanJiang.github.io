@@ -5,12 +5,16 @@ import "../styles/global.css";
 interface Props {
   title?: string;
   description?: string;
+  robots?: string;
 }
 
 const {
   title = "Norman's Blog",
-  description = "个人图文写作与影像记录"
+  description = "个人图文写作与影像记录",
+  robots
 } = Astro.props;
+
+const adminApiUrl = import.meta.env.PUBLIC_ADMIN_API_URL ?? "";
 
 const posts = (await getCollection("posts")).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
@@ -31,6 +35,7 @@ const searchJson = JSON.stringify(searchPosts).replaceAll("<", "\\u003c");
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    {robots && <meta name="robots" content={robots} />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
     <script is:inline>
@@ -180,7 +185,7 @@ const searchJson = JSON.stringify(searchPosts).replaceAll("<", "\\u003c");
       });
     </script>
   </head>
-  <body id="page-top">
+  <body id="page-top" data-admin-api-url={adminApiUrl}>
     <div class="site-shell">
       <header class="site-header">
         <a class="brand" href="/">
@@ -197,6 +202,13 @@ const searchJson = JSON.stringify(searchPosts).replaceAll("<", "\\u003c");
             <input id="site-search-input" type="search" placeholder="搜索标题或正文" autocomplete="off" />
             <div class="search-panel" data-search-results hidden></div>
           </div>
+          <button class="admin-entry" type="button" data-admin-entry aria-label="管理员入口" title="管理员入口">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M4.5 21a7.5 7.5 0 0 1 15 0"></path>
+            </svg>
+            <span>管理员</span>
+          </button>
           <button class="music-toggle" type="button" data-music-toggle aria-label="播放音乐" aria-pressed="false" title="播放音乐">
             <svg class="music-icon music-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M11 5 6 9H3v6h3l5 4Z"></path>
@@ -225,9 +237,30 @@ const searchJson = JSON.stringify(searchPosts).replaceAll("<", "\\u003c");
         <p>Build with Codex GPT 5.6 Terra</p>
       </footer>
     </div>
+    <dialog class="admin-login-dialog" data-admin-login-dialog>
+      <form class="admin-login-form" data-admin-login-form>
+        <div class="admin-dialog-heading">
+          <div>
+            <span>Admin</span>
+            <h2>进入管理员模式</h2>
+          </div>
+          <button class="dialog-close" type="button" data-admin-dialog-close aria-label="关闭" title="关闭">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m6 6 12 12"></path>
+              <path d="m18 6-12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <label for="admin-password">管理员密码</label>
+        <input id="admin-password" name="password" type="password" autocomplete="current-password" required />
+        <p class="admin-form-status" data-admin-login-status aria-live="polite"></p>
+        <button class="button admin-submit" type="submit">验证并进入</button>
+      </form>
+    </dialog>
     <audio data-site-audio preload="metadata">
       <source src="/audio/little-friend.mp3" type="audio/mpeg" />
     </audio>
     <script id="search-data" type="application/json" set:html={searchJson}></script>
+    <script src="/scripts/admin-auth.js" defer></script>
   </body>
 </html>

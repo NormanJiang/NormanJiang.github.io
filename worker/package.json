@@ -1,0 +1,15 @@
+{
+  "name": "norman-blog-admin-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "check": "node --check src/index.js",
+    "test": "node tests/smoke.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.97.0"
+  }
+}
